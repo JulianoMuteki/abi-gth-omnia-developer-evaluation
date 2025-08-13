@@ -1,5 +1,9 @@
 version: '3.8'
 
+networks:
+  app-network:
+    driver: bridge
+
 services:
   ambev.developerevaluation.webapi:
     container_name: ambev_developer_evaluation_webapi
@@ -7,16 +11,23 @@ services:
     build:
       context: .
       dockerfile: src/Ambev.DeveloperEvaluation.WebApi/Dockerfile
+    depends_on:
+      - ambev.developerevaluation.database
+    restart: unless-stopped
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=${CONNECTION_STRING}
+      - Jwt__SecretKey=${JWT_SECRET_KEY}
+      - Logging__LogLevel__Default=Information
+      - Logging__LogLevel__Microsoft=Warning
+      - Logging__LogLevel__Microsoft.Hosting.Lifetime=Information
     ports:
-      - "8080"
-      - "8081"
-    volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - "8080:8080"
+    networks:
+      - app-network
 
   ambev.developerevaluation.database:
     container_name: ambev_developer_evaluation_database
@@ -27,24 +38,26 @@ services:
       POSTGRES_USER: developer
       POSTGRES_PASSWORD: ev@luAt10n
     ports:
-      - "5432"
+      - "32778:5432"
     restart: unless-stopped
+    networks:
+      - app-network
 
-  ambev.developerevaluation.nosql:
-    container_name: ambev_developer_evaluation_nosql 
-    image: mongo:8.0    
-    environment:
-        MONGO_INITDB_ROOT_USERNAME: developer
-        MONGO_INITDB_ROOT_PASSWORD: ev@luAt10n
-    ports:
-      - "27017"
+  # ambev.developerevaluation.nosql:
+  #   container_name: ambev_developer_evaluation_nosql 
+  #   image: mongo:8.0    
+  #   environment:
+  #       MONGO_INITDB_ROOT_USERNAME: developer
+  #       MONGO_INITDB_ROOT_PASSWORD: ev@luAt10n
+  #   ports:
+  #     - "27017"
 
-  ambev.developerevaluation.cache:
-    container_name: ambev_developer_evaluation_cache 
-    image: redis:7.4.1-alpine     
-    command: redis-server --requirepass ev@luAt10n
-    environment:
-       MONGO_INITDB_ROOT_USERNAME: developer
-       MONGO_INITDB_ROOT_PASSWORD: ev@luAt10n
-    ports:
-       - "6379"
+  # ambev.developerevaluation.cache:
+  #   container_name: ambev_developer_evaluation_cache 
+  #   image: redis:7.4.1-alpine     
+  #   command: redis-server --requirepass ev@luAt10n
+  #   environment:
+  #      MONGO_INITDB_ROOT_USERNAME: developer
+  #      MONGO_INITDB_ROOT_PASSWORD: ev@luAt10n
+  #   ports:
+  #      - "6379"
