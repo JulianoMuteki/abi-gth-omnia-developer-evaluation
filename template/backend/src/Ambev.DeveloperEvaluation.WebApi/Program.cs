@@ -98,8 +98,19 @@ public class Program
 
             Log.Information("Application fully configured!");
             Log.Information("Starting application...");
-            
-            app.Run();
+                      
+            try
+            {
+                Log.Information("About to call app.Run()...");
+                app.Run();
+                Log.Information("app.Run() completed successfully!");
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Error during app.Run(): {Message}", ex.Message);
+                Log.Fatal(ex, "Stack trace: {StackTrace}", ex.StackTrace);
+                throw;
+            }
         }
         catch (Exception ex)
         {
