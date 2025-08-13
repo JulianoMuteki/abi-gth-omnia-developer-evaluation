@@ -5,6 +5,7 @@ using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Common.Validation;
 using Ambev.DeveloperEvaluation.IoC;
 using Ambev.DeveloperEvaluation.ORM;
+using Ambev.DeveloperEvaluation.ORM.Database;
 using Ambev.DeveloperEvaluation.WebApi.Middleware;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +15,7 @@ namespace Ambev.DeveloperEvaluation.WebApi;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         try
         {
@@ -53,6 +54,31 @@ public class Program
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             var app = builder.Build();
+            
+            Log.Information("Application built successfully!");
+            
+            // Execute migrations automatically on startup
+            try
+            {
+                Log.Information("Starting migration execution...");
+                using (var scope = app.Services.CreateScope())
+                {
+                    Log.Information("Scope created, getting migration service...");
+                    var migrationService = scope.ServiceProvider.GetRequiredService<IDatabaseMigrationService>();
+                    Log.Information("Migration service obtained, executing...");
+                    await migrationService.MigrateAsync();
+                }
+                Log.Information("Migrations executed successfully!");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error executing migrations: {Message}", ex.Message);
+                Log.Error(ex, "Stack trace: {StackTrace}", ex.StackTrace);
+                // We won't fail the application if migrations fail
+                // The application can continue without migrations in some cases
+            }
+            
+            Log.Information("Configuring middleware...");
             app.UseMiddleware<ValidationExceptionMiddleware>();
 
             if (app.Environment.IsDevelopment())
@@ -70,6 +96,9 @@ public class Program
 
             app.MapControllers();
 
+            Log.Information("Application fully configured!");
+            Log.Information("Starting application...");
+            
             app.Run();
         }
         catch (Exception ex)
