@@ -116,8 +116,7 @@ public class Sale : BaseEntity
 
         if (Status == SaleStatus.Cancelled)
             throw new InvalidOperationException("Cannot add items to a cancelled sale.");
-
-        item.SaleId = Id;
+        
         Items.Add(item);
         CalculateTotalAmount();
         UpdatedAt = DateTime.UtcNow;
