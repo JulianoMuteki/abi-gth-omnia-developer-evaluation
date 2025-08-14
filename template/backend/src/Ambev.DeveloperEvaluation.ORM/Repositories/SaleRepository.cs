@@ -1,6 +1,7 @@
 using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using Ambev.DeveloperEvaluation.Domain.Specifications;
+using Ambev.DeveloperEvaluation.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ambev.DeveloperEvaluation.ORM.Repositories;
@@ -195,5 +196,65 @@ public class SaleRepository : ISaleRepository
             .Include(s => s.Items)
             .Where(s => s.SaleDate >= startDate && s.SaleDate <= endDate)
             .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Gets a paginated list of sales with optional filters.
+    /// </summary>
+    /// <param name="pageNumber">The page number (1-based).</param>
+    /// <param name="pageSize">The page size.</param>
+    /// <param name="customerId">Optional customer ID filter.</param>
+    /// <param name="branchId">Optional branch ID filter.</param>
+    /// <param name="startDate">Optional start date filter.</param>
+    /// <param name="endDate">Optional end date filter.</param>
+    /// <param name="status">Optional status filter.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A tuple containing the paginated sales and total count.</returns>
+    public async Task<(IEnumerable<Sale> Sales, int TotalCount)> GetPaginatedAsync(
+        int pageNumber,
+        int pageSize,
+        Guid? customerId = null,
+        Guid? branchId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        string? status = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Sales.Include(s => s.Items).AsQueryable();
+
+        if (customerId.HasValue)
+        {
+            query = query.Where(s => s.CustomerId == customerId.Value);
+        }
+
+        if (branchId.HasValue)
+        {
+            query = query.Where(s => s.BranchId == branchId.Value);
+        }
+
+        if (startDate.HasValue)
+        {
+            query = query.Where(s => s.SaleDate >= startDate.Value);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(s => s.SaleDate <= endDate.Value);
+        }
+
+        if (!string.IsNullOrEmpty(status) && Enum.TryParse<SaleStatus>(status, true, out var saleStatus))
+        {
+            query = query.Where(s => s.Status == saleStatus);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var sales = await query
+            .OrderByDescending(s => s.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (sales, totalCount);
     }
 }

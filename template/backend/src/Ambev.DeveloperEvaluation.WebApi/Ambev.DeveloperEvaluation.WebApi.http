@@ -1,6 +1,109 @@
-@Ambev.DeveloperEvaluation.WebApi_HostAddress = http://localhost:5119
+@Ambev.DeveloperEvaluation.WebApi_HostAddress = https://localhost:7181
 
 GET {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/weatherforecast/
 Accept: application/json
+
+###
+
+# ==========================================
+# SALES API EXAMPLES
+# ==========================================
+
+# Create a new sale
+POST {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales
+Content-Type: application/json
+
+{
+  "saleNumber": "SALE-2024-001",
+  "saleDate": "2024-01-15T10:30:00Z",
+  "customerId": "123e4567-e89b-12d3-a456-426614174000",
+  "customerName": "João Silva",
+  "customerEmail": "joao.silva@email.com",
+  "customerPhone": "+55 11 99999-9999",
+  "branchId": "898d33df-3830-482b-a6da-551629858b54",
+  "branchName": "F filial Centro - São Paulo",
+  "branchCode": "SP001",
+  "status": 1,
+  "items": [
+    {
+      "productId": "789e0123-e89b-12d3-a456-426614174002",
+      "productName": "Cerveja Heineken 350ml",
+      "productCode": "HEIN-350",
+      "productDescription": "Cerveja Heineken lata 350ml",
+      "quantity": 6,
+      "unitPrice": 4.50,
+      "discountPercentage": 0,
+      "status": 1
+    },
+    {
+      "productId": "012e3456-e89b-12d3-a456-426614174003",
+      "productName": "Cerveja Budweiser 350ml",
+      "productCode": "BUD-350",
+      "productDescription": "Cerveja Budweiser lata 350ml",
+      "quantity": 12,
+      "unitPrice": 3.80,
+      "discountPercentage": 0,
+      "status": 1
+    }
+  ]
+}
+
+###
+
+# Create another sale with multiple items
+POST {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales
+Content-Type: application/json
+
+{
+  "saleNumber": "SALE-2024-002",
+  "saleDate": "2024-01-16T14:20:00Z",
+  "customerId": "456e7890-e89b-12d3-a456-426614174001",
+  "customerName": "Maria Santos",
+  "customerEmail": "maria.santos@email.com",
+  "customerPhone": "+55 11 88888-8888",
+  "branchId": "32b3f8be-5a17-4639-b3a2-4d9b11b930a1",
+  "branchName": "F filial Centro - São Paulo",
+  "branchCode": "SP001",
+  "totalAmount": 275.00,
+  "status": 1,
+  "items": [
+    {
+      "productId": "789e0123-e89b-12d3-a456-426614174002",
+      "productName": "Cerveja Brahma 350ml",
+      "productCode": "BRAHMA-350",
+      "productDescription": "Cerveja Brahma lata 350ml",
+      "quantity": 4,
+      "unitPrice": 25.00,
+      "discountPercentage": 10.00,
+      "discountAmount": 10.00,
+      "totalItemAmount": 90.00,
+      "status": 1
+    },
+    {
+      "productId": "abc12345-e89b-12d3-a456-426614174003",
+      "productName": "Cerveja Skol 350ml",
+      "productCode": "SKOL-350",
+      "productDescription": "Cerveja Skol lata 350ml",
+      "quantity": 5,
+      "unitPrice": 25.00,
+      "discountPercentage": 10.00,
+      "discountAmount": 12.50,
+      "totalItemAmount": 112.50,
+      "status": 1
+    },
+    {
+      "productId": "def67890-e89b-12d3-a456-426614174004",
+      "productName": "Refrigerante Coca-Cola 2L",
+      "productCode": "COCA-2L",
+      "productDescription": "Refrigerante Coca-Cola garrafa 2L",
+      "quantity": 2,
+      "unitPrice": 8.50,
+      "discountPercentage": 0.00,
+      "discountAmount": 0.00,
+      "totalItemAmount": 17.00,
+      "status": 1
+    }
+  ]
+}
 
 ###

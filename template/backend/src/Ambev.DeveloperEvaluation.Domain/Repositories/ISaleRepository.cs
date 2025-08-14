@@ -110,4 +110,26 @@ public interface ISaleRepository
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A collection of sales within the date range.</returns>
     Task<IEnumerable<Sale>> GetByDateRangeAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a paginated list of sales with optional filters.
+    /// </summary>
+    /// <param name="pageNumber">The page number (1-based).</param>
+    /// <param name="pageSize">The page size.</param>
+    /// <param name="customerId">Optional customer ID filter.</param>
+    /// <param name="branchId">Optional branch ID filter.</param>
+    /// <param name="startDate">Optional start date filter.</param>
+    /// <param name="endDate">Optional end date filter.</param>
+    /// <param name="status">Optional status filter.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A tuple containing the paginated sales and total count.</returns>
+    Task<(IEnumerable<Sale> Sales, int TotalCount)> GetPaginatedAsync(
+        int pageNumber,
+        int pageSize,
+        Guid? customerId = null,
+        Guid? branchId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        string? status = null,
+        CancellationToken cancellationToken = default);
 }
