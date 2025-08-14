@@ -21,6 +21,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=${CONNECTION_STRING}
       - Jwt__SecretKey=${JWT_SECRET_KEY}
+      - RUN_SEEDING=${RUN_SEEDING}
       - Logging__LogLevel__Default=Information
       - Logging__LogLevel__Microsoft=Warning
       - Logging__LogLevel__Microsoft.Hosting.Lifetime=Information
