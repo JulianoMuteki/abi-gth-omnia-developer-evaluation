@@ -17,5 +17,6 @@ public class InfrastructureModuleInitializer : IModuleInitializer
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddScoped<ISaleRepository, SaleRepository>();
         builder.Services.AddDatabaseMigrationService();
+        builder.Services.AddScoped<IDatabaseSeedingService, DatabaseSeedingService>();
     }
 }

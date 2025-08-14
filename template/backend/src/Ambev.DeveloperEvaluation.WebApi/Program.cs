@@ -9,6 +9,7 @@ using Ambev.DeveloperEvaluation.ORM.Database;
 using Ambev.DeveloperEvaluation.WebApi.Middleware;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace Ambev.DeveloperEvaluation.WebApi;
@@ -72,6 +73,37 @@ public class Program
             catch (Exception ex)
             {
                 Log.Error(ex, "Error executing migrations: {Message}", ex.Message);
+                Log.Error(ex, "Stack trace: {StackTrace}", ex.StackTrace);
+            }
+
+            // Database Seeding
+            try
+            {
+                Log.Information("Checking if database seeding should be executed...");
+                
+                // Get seeding configuration from appsettings.json
+                var shouldRunSeeding = builder.Configuration.GetValue<bool>("RUN_SEEDING", false);
+                
+                if (shouldRunSeeding)
+                {
+                    Log.Information("RUN_SEEDING is enabled in appsettings.json, executing seeding...");
+                    using (var scope = app.Services.CreateScope())
+                    {
+                        Log.Information("Scope created, getting seeding service...");
+                        var seedingService = scope.ServiceProvider.GetRequiredService<IDatabaseSeedingService>();
+                        Log.Information("Seeding service obtained, executing...");
+                        await seedingService.SeedAsync();
+                    }
+                    Log.Information("Database seeding executed successfully!");
+                }
+                else
+                {
+                    Log.Information("RUN_SEEDING is not enabled in appsettings.json, skipping seeding");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error executing database seeding: {Message}", ex.Message);
                 Log.Error(ex, "Stack trace: {StackTrace}", ex.StackTrace);
             }
             
