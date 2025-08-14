@@ -13,11 +13,11 @@ fi
 
 # Stop any existing containers
 echo "1. Stopping existing containers..."
-docker-compose -f docker-compose.yml --env-file .env -p abi-gth-omnia down
+docker-compose -f docker-compose.yml  --env-file .env.develop -p abi-gth-omnia down
 
 # Build and start containers
 echo "2. Building and starting containers..."
-docker-compose -f docker-compose.yml --env-file .env -p abi-gth-omnia up -d --build
+docker-compose -f docker-compose.yml  --env-file .env.develop -p abi-gth-omnia up -d --build
 
 # Wait for startup
 echo "3. Waiting for containers to start..."

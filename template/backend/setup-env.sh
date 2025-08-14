@@ -32,6 +32,8 @@ CONNECTION_STRING=Host=\${DB_HOST};Port=\${DB_PORT};Database=\${DB_NAME};Usernam
 
 # JWT Configuration
 JWT_SECRET_KEY=YourSuperSecretKeyForJwtTokenGenerationThatShouldBeAtLeast32BytesLong
+
+RUN_SEEDING=true
 EOF
 
 echo "✅ .env file created successfully!"
