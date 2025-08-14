@@ -57,7 +57,6 @@ public class Program
             
             Log.Information("Application built successfully!");
             
-            // Execute migrations automatically on startup
             try
             {
                 Log.Information("Starting migration execution...");
@@ -74,8 +73,6 @@ public class Program
             {
                 Log.Error(ex, "Error executing migrations: {Message}", ex.Message);
                 Log.Error(ex, "Stack trace: {StackTrace}", ex.StackTrace);
-                // We won't fail the application if migrations fail
-                // The application can continue without migrations in some cases
             }
             
             Log.Information("Configuring middleware...");

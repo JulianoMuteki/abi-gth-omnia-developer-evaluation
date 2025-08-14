@@ -6,10 +6,12 @@ using Ambev.DeveloperEvaluation.WebApi.Features.Sales.CreateSale;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.GetSale;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.GetSales;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.DeleteSale;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.EditSale;
 using Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
 using Ambev.DeveloperEvaluation.Application.Sales.GetSale;
 using Ambev.DeveloperEvaluation.Application.Sales.GetSales;
 using Ambev.DeveloperEvaluation.Application.Sales.DeleteSale;
+using Ambev.DeveloperEvaluation.Application.Sales.EditSale;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales
 {
@@ -59,6 +61,40 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales
                 Success = true,
                 Message = "Sale created successfully",
                 Data = _mapper.Map<CreateSaleResponse>(response)
+            });
+        }
+
+        /// <summary>
+        /// Edits an existing sale
+        /// </summary>
+        /// <param name="id">The unique identifier of the sale to edit</param>
+        /// <param name="request">The sale edit request</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>The edited sale details</returns>
+        [HttpPut("{id}")]
+        [ProducesResponseType(typeof(ApiResponseWithData<EditSaleResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> EditSale([FromRoute] Guid id, [FromBody] EditSaleRequest request, CancellationToken cancellationToken)
+        {
+            if (id == Guid.Empty)
+                return BadRequest(new ApiResponse { Success = false, Message = "Invalid sale ID" });
+
+            var validator = new EditSaleRequestValidator();
+            var validationResult = await validator.ValidateAsync(request, cancellationToken);
+
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
+
+            var command = _mapper.Map<EditSaleCommand>(request);
+            command.Id = id;
+            var response = await _mediator.Send(command, cancellationToken);
+
+            return Ok(new ApiResponseWithData<EditSaleResponse>
+            {
+                Success = true,
+                Message = "Sale edited successfully",
+                Data = _mapper.Map<EditSaleResponse>(response)
             });
         }
 
