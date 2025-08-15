@@ -25,35 +25,61 @@ namespace Ambev.DeveloperEvaluation.ORM.Database
 
         public async Task MigrateAsync()
         {
-            try
+            const int maxRetries = 5;
+            const int retryDelayMs = 2000;
+            
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
-                using var scope = _serviceProvider.CreateScope();
-                var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
-
-                _logger.LogInformation("Verificando migrations pendentes...");
-
-                // Verifica se há migrations pendentes
-                var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
-                var pendingMigrationsList = pendingMigrations.ToList();
-
-                if (!pendingMigrationsList.Any())
+                try
                 {
-                    _logger.LogInformation("Nenhuma migration pendente encontrada. O banco de dados está atualizado.");
-                    return;
+                    _logger.LogInformation("Migration attempt {Attempt}/{MaxRetries}", attempt, maxRetries);
+                    
+                    using var scope = _serviceProvider.CreateScope();
+                    var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
+
+                    _logger.LogInformation("Verificando migrations pendentes...");
+
+                    // Test database connection first
+                    _logger.LogInformation("Testing database connection...");
+                    var canConnect = await context.Database.CanConnectAsync();
+                    if (!canConnect)
+                    {
+                        throw new InvalidOperationException("Cannot connect to database");
+                    }
+                    _logger.LogInformation("Database connection successful");
+
+                    // Verifica se há migrations pendentes
+                    var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+                    var pendingMigrationsList = pendingMigrations.ToList();
+
+                    if (!pendingMigrationsList.Any())
+                    {
+                        _logger.LogInformation("Nenhuma migration pendente encontrada. O banco de dados está atualizado.");
+                        return;
+                    }
+
+                    _logger.LogInformation("Encontradas {Count} migrations pendentes: {Migrations}", 
+                        pendingMigrationsList.Count, string.Join(", ", pendingMigrationsList));
+
+                    // Executa as migrations
+                    await context.Database.MigrateAsync();
+
+                    _logger.LogInformation("Migrations aplicadas com sucesso!");
+                    return; // Success, exit the retry loop
                 }
-
-                _logger.LogInformation("Encontradas {Count} migrations pendentes: {Migrations}", 
-                    pendingMigrationsList.Count, string.Join(", ", pendingMigrationsList));
-
-                // Executa as migrations
-                await context.Database.MigrateAsync();
-
-                _logger.LogInformation("Migrations aplicadas com sucesso!");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Erro ao executar migrations: {Message}", ex.Message);
-                throw;
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Migration attempt {Attempt} failed: {Message}", attempt, ex.Message);
+                    
+                    if (attempt == maxRetries)
+                    {
+                        _logger.LogError(ex, "All migration attempts failed. Final error: {Message}", ex.Message);
+                        throw;
+                    }
+                    
+                    _logger.LogInformation("Waiting {Delay}ms before retry...", retryDelayMs);
+                    await Task.Delay(retryDelayMs);
+                }
             }
         }
     }

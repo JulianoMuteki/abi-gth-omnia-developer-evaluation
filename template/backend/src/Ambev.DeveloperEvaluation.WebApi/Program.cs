@@ -33,8 +33,13 @@ public class Program
 
             builder.Services.AddDbContext<DefaultContext>(options =>
                 options.UseNpgsql(
-                    builder.Configuration.GetConnectionString("DefaultConnection"),
+                    builder.Configuration.GetConnectionString("DefaultConnection") + ";Timeout=30;CommandTimeout=60;",
                     b => b.MigrationsAssembly("Ambev.DeveloperEvaluation.ORM")
+                        .EnableRetryOnFailure(
+                            maxRetryCount: 3,
+                            maxRetryDelay: TimeSpan.FromSeconds(30),
+                            errorCodesToAdd: null)
+                        .CommandTimeout(60)
                 )
             );
 
@@ -58,6 +63,9 @@ public class Program
             
             Log.Information("Application built successfully!");
             
+            // Wait for database to be ready
+            await WaitForDatabaseAsync(app.Services, builder.Configuration);
+            
             try
             {
                 Log.Information("Starting migration execution...");
@@ -80,13 +88,20 @@ public class Program
             try
             {
                 Log.Information("Checking if database seeding should be executed...");
+
+                var shouldRunSeeding = false;
                 
-                // Get seeding configuration from appsettings.json
-                var shouldRunSeeding = builder.Configuration.GetValue<bool>("RUN_SEEDING", false);
+                var envRunSeeding = Environment.GetEnvironmentVariable("RUN_SEEDING");
+                if (bool.TryParse(envRunSeeding, out var envSeeding))
+                {
+                    shouldRunSeeding = envSeeding;
+                }
+                
+                Log.Information("RUN_SEEDING configuration: {shouldRunSeeding}", shouldRunSeeding);
                 
                 if (shouldRunSeeding)
                 {
-                    Log.Information("RUN_SEEDING is enabled in appsettings.json, executing seeding...");
+                    Log.Information("RUN_SEEDING is enabled, executing seeding...");
                     using (var scope = app.Services.CreateScope())
                     {
                         Log.Information("Scope created, getting seeding service...");
@@ -98,7 +113,7 @@ public class Program
                 }
                 else
                 {
-                    Log.Information("RUN_SEEDING is not enabled in appsettings.json, skipping seeding");
+                    Log.Information("RUN_SEEDING is not enabled, skipping seeding");
                 }
             }
             catch (Exception ex)
@@ -149,5 +164,45 @@ public class Program
         {
             Log.CloseAndFlush();
         }
+    }
+
+    private static async Task WaitForDatabaseAsync(IServiceProvider serviceProvider, IConfiguration configuration)
+    {
+        const int maxRetries = 30;
+        const int retryDelayMs = 2000;
+        
+        Log.Information("Waiting for database to be ready...");
+        
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                using var scope = serviceProvider.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<DefaultContext>();
+                
+                Log.Information("Database connection attempt {Attempt}/{MaxRetries}", attempt, maxRetries);
+                
+                var canConnect = await context.Database.CanConnectAsync();
+                if (canConnect)
+                {
+                    Log.Information("Database is ready!");
+                    return;
+                }
+                
+                Log.Warning("Database not ready yet, attempt {Attempt}/{MaxRetries}", attempt, maxRetries);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Database connection attempt {Attempt}/{MaxRetries} failed: {Message}", attempt, maxRetries, ex.Message);
+            }
+            
+            if (attempt < maxRetries)
+            {
+                Log.Information("Waiting {Delay}ms before next attempt...", retryDelayMs);
+                await Task.Delay(retryDelayMs);
+            }
+        }
+        
+        throw new InvalidOperationException($"Database is not ready after {maxRetries} attempts");
     }
 }

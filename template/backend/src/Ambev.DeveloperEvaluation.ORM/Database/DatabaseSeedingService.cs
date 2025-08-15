@@ -35,11 +35,17 @@ public class DatabaseSeedingService : IDatabaseSeedingService
             _logger.LogInformation("Starting database seeding...");
 
             await SeedUsersAsync();
-            await SeedBranchesAsync();
-            await SeedSalesAsync();
-            await SeedSaleItemsAsync();
-
             await _context.SaveChangesAsync();
+            
+            await SeedBranchesAsync();
+            await _context.SaveChangesAsync();
+            
+            await SeedSalesAsync();
+            await _context.SaveChangesAsync();
+            
+            await SeedSaleItemsAsync();
+            await _context.SaveChangesAsync();
+            
             _logger.LogInformation("Database seeding completed successfully!");
         }
         catch (Exception ex)
@@ -383,5 +389,6 @@ public class DatabaseSeedingService : IDatabaseSeedingService
 
         await _context.SaleItems.AddRangeAsync(saleItems);
         _logger.LogInformation("Added {Count} sale items to the database", saleItems.Count);
+        _logger.LogInformation("Sale items will be saved in the next SaveChanges call");
     }
 }
