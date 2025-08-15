@@ -55,8 +55,14 @@ public class EditSaleHandler : IRequestHandler<EditSaleCommand, EditSaleResult>
                 throw new InvalidOperationException($"Sale with number {command.SaleNumber} already exists");
         }
 
+        // Store original status to detect changes
+        var originalSaleStatus = existingSale.Status;
+        var originalItemStatuses = existingSale.Items.ToDictionary(i => i.Id, i => i.Status);
+
         _mapper.Map(command, existingSale);
         existingSale.UpdatedAt = DateTime.UtcNow;
+
+        var cancelledItems = new List<SaleItem>();
 
         foreach (var itemCommand in command.Items)
         {
@@ -65,8 +71,16 @@ public class EditSaleHandler : IRequestHandler<EditSaleCommand, EditSaleResult>
                 var existingItem = existingSale.Items.FirstOrDefault(i => i.Id == itemCommand.Id.Value);
                 if (existingItem != null)
                 {
+                    var originalItemStatus = existingItem.Status;
                     _mapper.Map(itemCommand, existingItem);
                     existingItem.CalculateTotalAmount();
+
+                    // Check if item was cancelled
+                    if (originalItemStatus != Domain.Enums.SaleItemStatus.Cancelled && 
+                        existingItem.Status == Domain.Enums.SaleItemStatus.Cancelled)
+                    {
+                        cancelledItems.Add(existingItem);
+                    }
                 }
                 else
                 {
@@ -86,9 +100,24 @@ public class EditSaleHandler : IRequestHandler<EditSaleCommand, EditSaleResult>
 
         var updatedSale = await _saleRepository.UpdateAsync(existingSale, cancellationToken);
         
-        // Publish domain event
+        // Publish domain events based on status changes
         var saleModifiedEvent = new SaleModifiedEvent(updatedSale);
         await _publisher.Publish(saleModifiedEvent, cancellationToken);
+
+        // Check if sale was cancelled
+        if (originalSaleStatus != Domain.Enums.SaleStatus.Cancelled && 
+            updatedSale.Status == Domain.Enums.SaleStatus.Cancelled)
+        {
+            var saleCancelledEvent = new SaleCancelledEvent(updatedSale);
+            await _publisher.Publish(saleCancelledEvent, cancellationToken);
+        }
+
+        // Publish events for cancelled items
+        foreach (var cancelledItem in cancelledItems)
+        {
+            var itemCancelledEvent = new ItemCancelledEvent(cancelledItem, updatedSale);
+            await _publisher.Publish(itemCancelledEvent, cancellationToken);
+        }
         
         var result = _mapper.Map<EditSaleResult>(updatedSale);
         return result;
