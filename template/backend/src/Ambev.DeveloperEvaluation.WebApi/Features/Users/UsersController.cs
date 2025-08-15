@@ -8,6 +8,7 @@ using Ambev.DeveloperEvaluation.WebApi.Features.Users.DeleteUser;
 using Ambev.DeveloperEvaluation.Application.Users.CreateUser;
 using Ambev.DeveloperEvaluation.Application.Users.GetUser;
 using Ambev.DeveloperEvaluation.Application.Users.DeleteUser;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Users;
 
@@ -117,5 +118,17 @@ public class UsersController : BaseController
             Success = true,
             Message = "User deleted successfully"
         });
+    }
+
+
+    [HttpGet]
+    [ProducesResponseType(typeof(ApiResponseWithData<GetUserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [Route("GetAuth")]
+    [Authorize]
+    public IActionResult GetValues()
+    {
+        return Ok(new string[] { "value1", "value2" });
     }
 }

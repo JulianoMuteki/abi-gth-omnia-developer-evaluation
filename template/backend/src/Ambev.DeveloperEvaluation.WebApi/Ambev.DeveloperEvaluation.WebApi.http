@@ -101,6 +101,19 @@ Content-Type: application/json
 ###
 
 # ==========================================
+# 2. GET Auth (GET /api/Users/GetAuth)
+# ==========================================
+
+# Get Ahtu TEst
+GET {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Users/GetAuth
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiI0ZWJlNmVhMi0xMDdjLTRhZDQtYjYyNC0zODk3NjBkMDE3NjAiLCJ1bmlxdWVfbmFtZSI6Imp1bGlhbm8iLCJyb2xlIjoiQWRtaW4iLCJuYmYiOjE3NTUyNzQ2MjMsImV4cCI6MTc1NTMwMzQyMywiaWF0IjoxNzU1Mjc0NjIzfQ.LJjX0Jd2Kkk2eSY8wQcK5NzKkIY_0FNS7cZ9oxLiNEU
+
+###
+
+###
+
+# ==========================================
 # 2. GET SALE BY ID (GET /api/Sales/{id})
 # ==========================================
 
