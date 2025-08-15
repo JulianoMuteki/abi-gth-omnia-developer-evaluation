@@ -1,15 +1,14 @@
-@Ambev.DeveloperEvaluation.WebApi_HostAddress = https://localhost:7181
-
-GET {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
+@Ambev.DeveloperEvaluation.WebApi_HostAddress = http://localhost:8080
 
 # ==========================================
 # SALES API EXAMPLES
 # ==========================================
 
-# Create a new sale
+# ==========================================
+# 1. CREATE SALE (POST /api/Sales)
+# ==========================================
+
+# Create a new sale with multiple items
 POST {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales
 Content-Type: application/json
 
@@ -20,29 +19,29 @@ Content-Type: application/json
   "customerName": "João Silva",
   "customerEmail": "joao.silva@email.com",
   "customerPhone": "+55 11 99999-9999",
-  "branchId": "898d33df-3830-482b-a6da-551629858b54",
-  "branchName": "F filial Centro - São Paulo",
-  "branchCode": "SP001",
+  "branchId": "aef22a87-f44b-4157-a4a4-7f67cfff1aea",
+  "branchName": "Filial Centro",
+  "branchCode": "CENTRO001",
   "status": 1,
   "items": [
     {
       "productId": "789e0123-e89b-12d3-a456-426614174002",
-      "productName": "Cerveja Heineken 350ml",
-      "productCode": "HEIN-350",
-      "productDescription": "Cerveja Heineken lata 350ml",
-      "quantity": 6,
-      "unitPrice": 4.50,
-      "discountPercentage": 0,
+      "productName": "Cerveja Brahma 350ml",
+      "productCode": "BRAHMA-350",
+      "productDescription": "Cerveja Brahma lata 350ml",
+      "quantity": 8,
+      "unitPrice": 5.50,
+      "discountPercentage": 0.00,
       "status": 1
     },
     {
       "productId": "012e3456-e89b-12d3-a456-426614174003",
-      "productName": "Cerveja Budweiser 350ml",
-      "productCode": "BUD-350",
-      "productDescription": "Cerveja Budweiser lata 350ml",
-      "quantity": 12,
-      "unitPrice": 3.80,
-      "discountPercentage": 0,
+      "productName": "Cerveja Skol 350ml",
+      "productCode": "SKOL-350",
+      "productDescription": "Cerveja Skol lata 350ml",
+      "quantity": 14,
+      "unitPrice": 4.80,
+      "discountPercentage": 0.00,
       "status": 1
     }
   ]
@@ -50,7 +49,7 @@ Content-Type: application/json
 
 ###
 
-# Create another sale with multiple items
+# Create another sale with discount items
 POST {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales
 Content-Type: application/json
 
@@ -61,10 +60,9 @@ Content-Type: application/json
   "customerName": "Maria Santos",
   "customerEmail": "maria.santos@email.com",
   "customerPhone": "+55 11 88888-8888",
-  "branchId": "32b3f8be-5a17-4639-b3a2-4d9b11b930a1",
-  "branchName": "F filial Centro - São Paulo",
-  "branchCode": "SP001",
-  "totalAmount": 275.00,
+  "branchId": "ef734f65-ca8f-4363-9eb8-9b488b74047c",
+  "branchName": "Filial Zona Sul",
+  "branchCode": "SUL002",
   "status": 1,
   "items": [
     {
@@ -75,8 +73,6 @@ Content-Type: application/json
       "quantity": 4,
       "unitPrice": 25.00,
       "discountPercentage": 10.00,
-      "discountAmount": 10.00,
-      "totalItemAmount": 90.00,
       "status": 1
     },
     {
@@ -87,8 +83,6 @@ Content-Type: application/json
       "quantity": 5,
       "unitPrice": 25.00,
       "discountPercentage": 10.00,
-      "discountAmount": 12.50,
-      "totalItemAmount": 112.50,
       "status": 1
     },
     {
@@ -99,11 +93,141 @@ Content-Type: application/json
       "quantity": 2,
       "unitPrice": 8.50,
       "discountPercentage": 0.00,
-      "discountAmount": 0.00,
-      "totalItemAmount": 17.00,
       "status": 1
     }
   ]
 }
 
 ###
+
+# ==========================================
+# 2. GET SALE BY ID (GET /api/Sales/{id})
+# ==========================================
+
+# Get a specific sale by ID (replace with actual ID from seed)
+GET {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales/a58977bb-d54b-4269-b050-dafc8b8e902f
+
+###
+
+# ==========================================
+# 3. GET SALES WITH FILTERS (GET /api/Sales)
+# ==========================================
+
+# Get all sales with default pagination
+GET {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales
+
+###
+
+# Get sales with custom pagination
+GET {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales?PageNumber=1&PageSize=10
+
+###
+
+# Get sales filtered by customer ID
+GET {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales?CustomerId=123e4567-e89b-12d3-a456-426614174000
+
+###
+
+# Get sales filtered by branch ID
+GET {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales?BranchId=ef734f65-ca8f-4363-9eb8-9b488b74047c
+
+###
+
+# Get sales filtered by date range
+GET {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales?StartDate=2024-01-01T00:00:00Z&EndDate=2024-01-31T23:59:59Z
+
+###
+
+# Get sales filtered by status (Active = 1, Cancelled = 2)
+GET {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales?Status=Active
+
+###
+
+# Get sales with multiple filters
+GET {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales?PageNumber=1&PageSize=10&CustomerId=123e4567-e89b-12d3-a456-426614174000&Status=Active&StartDate=2024-01-01T00:00:00Z&EndDate=2024-01-31T23:59:59Z
+
+###
+
+# ==========================================
+# 4. EDIT SALE (PUT /api/Sales/{id})
+# ==========================================
+
+# Edit an existing sale (replace with actual ID from seed)
+PUT {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales/a58977bb-d54b-4269-b050-dafc8b8e902f
+Content-Type: application/json
+
+{
+  "saleNumber": "SALE-2024-001-EDITED",
+  "saleDate": "2024-01-15T10:30:00Z",
+  "customerId": "58ace21f-d931-477d-a463-318c357315f2",
+  "customerName": "João Silva Santos",
+  "customerEmail": "joao.silva.santos@email.com",
+  "customerPhone": "+55 11 99999-9999",
+  "branchId": "58ace21f-d931-477d-a463-318c357315f2",
+  "branchName": "Filial Centro",
+  "branchCode": "CENTRO001",
+  "status": 1,
+  "items": [
+    {
+      "id": "1b457423-2173-4c72-8d47-8cf31e0b8c33",
+      "productId": "789e0123-e89b-12d3-a456-426614174002",
+      "productName": "Cerveja Brahma 350ml",
+      "productCode": "BRAHMA-350",
+      "productDescription": "Cerveja Brahma lata 350ml",
+      "quantity": 10,
+      "unitPrice": 5.50,
+      "discountPercentage": 5.00,
+      "status": 1
+    },
+    {
+      "productId": "012e3456-e89b-12d3-a456-426614174003",
+      "productName": "Cerveja Heineken 350ml",
+      "productCode": "HEINEKEN-350",
+      "productDescription": "Cerveja Heineken lata 350ml",
+      "quantity": 6,
+      "unitPrice": 8.50,
+      "discountPercentage": 0.00,
+      "status": 1
+    }
+  ]
+}
+
+###
+
+# ==========================================
+# 5. DELETE SALE (DELETE /api/Sales/{id})
+# ==========================================
+
+# Delete a sale by ID (replace with actual ID from seed)
+DELETE {{Ambev.DeveloperEvaluation.WebApi_HostAddress}}/api/Sales/a58977bb-d54b-4269-b050-dafc8b8e902f
+
+###
+
+# ==========================================
+# SEED DATA REFERENCE
+# ==========================================
+
+# Based on the seed data, here are the available branches:
+# - Filial Centro (CENTRO001)
+# - Filial Zona Sul (SUL002) 
+# - Filial Zona Norte (NORTE003)
+# - Filial Zona Leste (LESTE004)
+# - Filial Zona Oeste (OESTE005)
+
+# Available users for customerId:
+# - admin_user (admin@ambev.com)
+# - manager_user (manager@ambev.com)
+# - customer_user1 (customer1@example.com)
+# - customer_user2 (customer2@example.com)
+# - customer_user3 (customer3@example.com)
+
+# Sample products from seed:
+# - Cerveja Brahma (BRAHMA001)
+# - Cerveja Skol (SKOL001)
+# - Cerveja Antarctica (ANTARCTICA001)
+# - Refrigerante Guaraná (GUARANA001)
+# - Cerveja Heineken (HEINEKEN001)
+
+# Status values:
+# - SaleStatus: Unknown = 0, Active = 1, Cancelled = 2
+# - SaleItemStatus: Unknown = 0, Active = 1, Cancelled = 2
